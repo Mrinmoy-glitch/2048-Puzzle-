@@ -59,7 +59,12 @@
             color: var(--color-text-dark);
         }
 
-        .score-container {
+        .info-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .score-container, .swipe-count-container {
             background-color: var(--color-bg);
             color: var(--color-text-light);
             padding: 10px 20px;
@@ -69,7 +74,7 @@
             font-weight: 700;
         }
 
-        .score-title {
+        .score-title, .swipe-title {
             font-size: 0.8rem;
             font-weight: 400;
             text-transform: uppercase;
@@ -188,6 +193,32 @@
             background-color: #9f8b78;
         }
 
+        .ad-container {
+            width: 100%;
+            max-width: 500px;
+            margin: 20px auto;
+            text-align: center;
+            position: relative;
+        }
+
+        .close-ad-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
         /* Responsive adjustments */
         @media (max-width: 600px) {
             body {
@@ -196,7 +227,7 @@
             .header h1 {
                 font-size: 2.5rem;
             }
-            .score-container {
+            .score-container, .swipe-count-container {
                 padding: 8px 16px;
             }
             .tile {
@@ -211,12 +242,25 @@
 </head>
 <body>
 
+    <!-- Ad container at the very top -->
+    <div class="ad-container" id="ad-top">
+        <button class="close-ad-btn">&times;</button>
+        <script async="async" data-cfasync="false" src="//pl27636878.revenuecpmgate.com/8125eddbe053f4ed82904209574460f4/invoke.js"></script>
+        <div id="container-8125eddbe053f4ed82904209574460f4"></div>
+    </div>
+
     <div class="game-container">
         <div class="header">
             <h1>2048</h1>
-            <div class="score-container">
-                <div class="score-title">Score</div>
-                <div id="score">0</div>
+            <div class="info-container">
+                <div class="score-container">
+                    <div class="score-title">Score</div>
+                    <div id="score">0</div>
+                </div>
+                <div class="swipe-count-container">
+                    <div class="swipe-title">Swipes</div>
+                    <div id="swipe-count">0</div>
+                </div>
             </div>
         </div>
         <div class="board-container">
@@ -240,19 +284,36 @@
         </div>
     </div>
 
+    <!-- Ad container at the very bottom -->
+    <div class="ad-container">
+        <script async="async" data-cfasync="false" src="//pl27636878.revenuecpmgate.com/8125eddbe053f4ed82904209574460f4/invoke.js"></script>
+        <div id="container-8125eddbe053f4ed82904209574460f4"></div>
+    </div>
+
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const board = document.getElementById('game-board');
         const scoreDisplay = document.getElementById('score');
+        const swipeCountDisplay = document.getElementById('swipe-count');
         const newGameBtn = document.getElementById('new-game-btn');
         const restartBtn = document.getElementById('restart-btn');
         const messageBox = document.getElementById('message-box');
         const messageText = document.getElementById('message-text');
         const messageSubtext = document.getElementById('message-subtext');
+        
+        const topAdContainer = document.querySelector('#ad-top');
+        const topCloseBtn = topAdContainer.querySelector('.close-ad-btn');
+
+        if (topCloseBtn) {
+            topCloseBtn.addEventListener('click', () => {
+                topAdContainer.style.display = 'none';
+            });
+        }
 
         const GRID_SIZE = 4;
         let grid = [];
         let score = 0;
+        let swipeCount = 0;
         let isGameOver = false;
         let isGameWon = false;
         let startX, startY, endX, endY;
@@ -260,9 +321,11 @@
         function initializeGame() {
             grid = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
             score = 0;
+            swipeCount = 0;
             isGameOver = false;
             isGameWon = false;
             updateScore();
+            updateSwipeCount();
             clearBoard();
             addRandomTile();
             addRandomTile();
@@ -272,11 +335,16 @@
         function updateScore() {
             scoreDisplay.textContent = score;
         }
+        
+        function updateSwipeCount() {
+            swipeCountDisplay.textContent = swipeCount;
+        }
 
         function clearBoard() {
-            while (board.firstChild) {
-                board.removeChild(board.firstChild);
-            }
+            // Remove existing tiles
+            const tileElements = document.querySelectorAll('.tile');
+            tileElements.forEach(tile => tile.remove());
+            
             // Re-add the background cells
             for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
                 const cell = document.createElement('div');
@@ -448,9 +516,11 @@
 
             if (moved) {
                 addRandomTile();
+                swipeCount++;
                 checkWin();
                 checkGameOver();
                 updateScore();
+                updateSwipeCount();
             }
         }
 
